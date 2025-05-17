@@ -33,8 +33,16 @@ public class SystemApps
         }
     }
 
-    private string Whereis(string item)
+    /// <summary>
+    /// This is an equivalent of whereis command on windows
+    /// </summary>
+    /// <param name="program">name of the program to search for</param>
+    /// <returns> full path if founded, "" if not</returns>
+    private string Whereis(string program)
     {
-        throw new NotImplementedException();
-    }
+        if (Path.Count == 0) return "";
+        // a query that finds directories containing program
+        bool Predict(string item) => File.Exists(System.IO.Path.Combine(item, program));
+        // if this query has an output, return it
+        return !Path.Exists(Predict) ? "" : System.IO.Path.Combine(Path.First(Predict), program);    }
 }

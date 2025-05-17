@@ -13,7 +13,7 @@ public class SystemApps
     // list of Apps (binaries) to look for
     public static readonly string[] AppnNames = ["steam", "flatpak", "lutris"];
     public List<string> Path { get; private set; } = new List<string>();
-    public List<string> Apps { get; private set; } = new List<string>();
+    public Dictionary<string,string> Apps { get; private set; } = new  Dictionary<string, string>();
     public List<string> FlatpackApps { get; private set; } = new List<string>();
     static SystemApps()
     {
@@ -29,7 +29,7 @@ public class SystemApps
         {
             var res = Whereis(item);
             if (res.Length > 0)
-                Apps.Add(res);
+                Apps[item] = res;
         }
     }
 

@@ -3,7 +3,7 @@
 Launcher for C&C: Generals and Zero Hour with patch management and mod support
 
 ## Features
-
+asd
 - [ ] Easy launching of both C&C: Generals and Zero Hour
 - [ ] Automatic patch management and updates
 - [ ] Comprehensive mod support with easy installation

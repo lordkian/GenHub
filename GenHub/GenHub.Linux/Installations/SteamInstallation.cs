@@ -122,7 +122,44 @@ public class SteamInstallation : IGameInstallation
 
         return true;
     }
-    
+
+    /// <summary>
+    /// Tries to fetch all steam library folders containing installed games.
+    /// </summary>
+    /// <returns>A List of full paths to the common directories for each valid library found.
+    /// if nothing found then the List will be empty</returns>
+    private List<string> GetSteamLibraries()
+    {
+        var steamLibraryPaths = new List<string>();
+
+        // Try to get the steam path in order to fetch the libraryfolders.vdf
+        if (!TryGetSteamPath(out var steamPath))
+            return steamLibraryPaths;
+
+        // Find libraryfolders.vdf
+        var libraryFile = Path.Combine(steamPath!, "steamapps", "libraryfolders.vdf");
+
+        if (!File.Exists(libraryFile))
+            return steamLibraryPaths;
+
+        using var sr = new StreamReader(libraryFile);
+        while (!sr.EndOfStream)
+        {
+            var line = sr.ReadLine();
+            if (string.IsNullOrEmpty(line) || !line.Contains("\"path\""))
+                continue;
+            // remove "path" and white spaces
+            line = line.Replace("\"path\"", string.Empty).Trim();
+            // remove " at beginig and the end
+            line = ApostropheStartEnd.Replace(line,string.Empty);
+            // this line works as well
+            // line = line.Remove(line.Length - 1).Remove(0, 1);
+            steamLibraryPaths.Add(Path.Combine(line, "steamapps", "common"));
+        }
+
+        return steamLibraryPaths;
+    }
+
     /// <summary>
     /// Checks if steam is installed by looking up the installation path of steam.
     /// on Linux there must be a reference in .steam directory in HOME dir.

@@ -49,4 +49,23 @@ public class SteamInstallation : IGameInstallation
                Directory.GetFiles(Path.Combine(systemApps.HomeAddr, ".steam", "steam")).Length != 0;
         // TODO for 100% acc we need more testing and finding edge cases
     }
+    
+    /// <summary>
+    /// returns installation path of steam on linux.
+    /// this method exist for compatibility and similarity between Linux and Windows version of this class 
+    /// </summary>
+    /// <param name="path">Returns the installation path if successful; otherwise, an empty string</param>
+    /// <returns><c>true</c> if the installation path of steam was found</returns>
+    private bool TryGetSteamPath(out string? path)
+    {
+        path = string.Empty;
+        if (DoesSteamPathExist())
+            return false;
+        var homePath = Path.Combine(systemApps.HomeAddr, ".steam");
+        
+        // this depends on softlink inside .steam dir in user's home
+        path = Path.Combine(homePath, "steam");
+        
+        return true;
+    }
 }

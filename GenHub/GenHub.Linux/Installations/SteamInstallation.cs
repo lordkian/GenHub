@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using GenHub.Core;
 
@@ -7,9 +8,9 @@ public class SteamInstallation : IGameInstallation
 {
     // IGameInstallation
     public GameInstallationType InstallationType => GameInstallationType.Steam;
-    public bool IsVanillaInstalled { get; private set; }
+    public bool IsVanillaInstalled { get; private set; } = false;
     public string VanillaGamePath { get; private set; } = "";
-    public bool IsZeroHourInstalled { get; private set; }
+    public bool IsZeroHourInstalled { get; private set; }= false;
     public string ZeroHourGamePath { get; private set; } = "";
 
     // Linux specific
@@ -29,6 +30,44 @@ public class SteamInstallation : IGameInstallation
         // TODO add flatpack and lutris support
 
         IsSteamInstalled = DoesSteamPathExist();
+        if(!IsSteamInstalled)
+            return;
+
+        if(!TryGetSteamLibraries(out var libraryPaths))
+            return;
+
+        foreach (var lib in libraryPaths)
+        {
+            if(string.IsNullOrEmpty(lib))
+                continue;
+
+            string gamePath;
+
+            // Fetch generals
+            if (!IsVanillaInstalled)
+            {
+                gamePath = Path.Combine(lib, "Command and Conquer Generals");
+                if (Directory.Exists(gamePath))
+                {
+                    // TODO: Add a more sophisticated check? E.g. check for generals.exe.
+                    // So that an empty folder doesn't cause a false positive
+                    IsVanillaInstalled = true;
+                    VanillaGamePath = gamePath;
+                }
+            }
+
+            // Fetch zero hour
+            if (!IsZeroHourInstalled)
+            {
+                gamePath = Path.Combine(lib, "Command & Conquer Generals - Zero Hour");
+                {
+                    // TODO: Add a more sophisticated check? E.g. check for generals.exe.
+                    // So that an empty folder doesn't cause a false positive
+                    IsZeroHourInstalled = true;
+                    ZeroHourGamePath = gamePath;
+                }
+            }
+        }
     }
 
     /// <summary>

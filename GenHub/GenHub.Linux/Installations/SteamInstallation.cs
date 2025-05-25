@@ -59,7 +59,7 @@ public class SteamInstallation : IGameInstallation
     private bool TryGetSteamPath(out string? path)
     {
         path = string.Empty;
-        if (DoesSteamPathExist())
+        if (!DoesSteamPathExist())
             return false;
         var homePath = Path.Combine(systemApps.HomeAddr, ".steam");
         

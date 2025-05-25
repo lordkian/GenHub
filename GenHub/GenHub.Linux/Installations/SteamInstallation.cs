@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using GenHub.Core;
 
 namespace GenHub.Linux.Installations;
@@ -10,8 +12,11 @@ public class SteamInstallation : IGameInstallation
     public GameInstallationType InstallationType => GameInstallationType.Steam;
     public bool IsVanillaInstalled { get; private set; } = false;
     public string VanillaGamePath { get; private set; } = "";
-    public bool IsZeroHourInstalled { get; private set; }= false;
+    public string VanillaIconPath { get; set; }= "";
+    public bool IsZeroHourInstalled { get; private set; } = false;
     public string ZeroHourGamePath { get; private set; } = "";
+    public string ZeroHourIconPath { get; private set; } = "";
+    private Regex ApostropheStartEnd = new Regex("^\\\"|\\\"$");
 
     // Linux specific
     private SystemApps systemApps = SystemApps.Instance; // for convince
@@ -30,15 +35,16 @@ public class SteamInstallation : IGameInstallation
         // TODO add flatpack and lutris support
 
         IsSteamInstalled = DoesSteamPathExist();
-        if(!IsSteamInstalled)
+        if (!IsSteamInstalled)
             return;
 
-        if(!TryGetSteamLibraries(out var libraryPaths))
+        var libraryPaths = GetSteamLibraries();
+        if (libraryPaths.Count == 0)
             return;
 
         foreach (var lib in libraryPaths)
         {
-            if(string.IsNullOrEmpty(lib))
+            if (string.IsNullOrEmpty(lib))
                 continue;
 
             string gamePath;
@@ -47,12 +53,11 @@ public class SteamInstallation : IGameInstallation
             if (!IsVanillaInstalled)
             {
                 gamePath = Path.Combine(lib, "Command and Conquer Generals");
-                if (Directory.Exists(gamePath))
+                if (Directory.Exists(gamePath) && File.Exists(Path.Combine(gamePath, "Generals.exe")))
                 {
-                    // TODO: Add a more sophisticated check? E.g. check for generals.exe.
-                    // So that an empty folder doesn't cause a false positive
                     IsVanillaInstalled = true;
                     VanillaGamePath = gamePath;
+                    VanillaIconPath = Path.Combine(gamePath, "GeneralsHD.ico");
                 }
             }
 
@@ -60,11 +65,11 @@ public class SteamInstallation : IGameInstallation
             if (!IsZeroHourInstalled)
             {
                 gamePath = Path.Combine(lib, "Command & Conquer Generals - Zero Hour");
+                if (Directory.Exists(gamePath) && File.Exists(Path.Combine(gamePath, "Generals.exe")))
                 {
-                    // TODO: Add a more sophisticated check? E.g. check for generals.exe.
-                    // So that an empty folder doesn't cause a false positive
                     IsZeroHourInstalled = true;
                     ZeroHourGamePath = gamePath;
+                    ZeroHourIconPath =  Path.Combine(gamePath, "GeneralsZHHD.ico");
                 }
             }
         }
@@ -90,7 +95,7 @@ public class SteamInstallation : IGameInstallation
         // Find libraryfolders.vdf
         var libraryFile = Path.Combine(steamPath!, "steamapps", "libraryfolders.vdf");
 
-        if(!File.Exists(libraryFile))
+        if (!File.Exists(libraryFile))
             return false;
 
         List<string> results = [];
@@ -103,7 +108,7 @@ public class SteamInstallation : IGameInstallation
                 continue;
 
             var parts = line.Split('"');
-            if(parts.Length < 4)
+            if (parts.Length < 4)
                 continue;
 
             var dir = parts[3].Trim();
@@ -178,7 +183,7 @@ public class SteamInstallation : IGameInstallation
                Directory.GetFiles(Path.Combine(systemApps.HomeAddr, ".steam", "steam")).Length != 0;
         // TODO for 100% acc we need more testing and finding edge cases
     }
-    
+
     /// <summary>
     /// returns installation path of steam on linux.
     /// this method exist for compatibility and similarity between Linux and Windows version of this class 
@@ -191,10 +196,10 @@ public class SteamInstallation : IGameInstallation
         if (!DoesSteamPathExist())
             return false;
         var homePath = Path.Combine(systemApps.HomeAddr, ".steam");
-        
+
         // this depends on softlink inside .steam dir in user's home
         path = Path.Combine(homePath, "steam");
-        
+
         return true;
     }
 }

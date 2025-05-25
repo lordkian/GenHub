@@ -1,3 +1,4 @@
+using System.IO;
 using GenHub.Core;
 
 namespace GenHub.Linux.Installations;
@@ -10,9 +11,24 @@ public class SteamInstallation : IGameInstallation
     public string VanillaGamePath { get; private set; } = "";
     public bool IsZeroHourInstalled { get; private set; }
     public string ZeroHourGamePath { get; private set; } = "";
+
+    // Linux specific
+    private SystemApps systemApps = SystemApps.Instance; // for convince
+
+    //Steam specific
+    public bool IsSteamInstalled { get; private set; }
+
+    public SteamInstallation(bool fetch)
+    {
+        if (fetch)
+            Fetch();
+    }
+
     public void Fetch()
     {
-        throw new System.NotImplementedException();
+        // TODO add flatpack and lutris support
+
+        IsSteamInstalled = DoesSteamPathExist();
     }
 
     /// <summary>
